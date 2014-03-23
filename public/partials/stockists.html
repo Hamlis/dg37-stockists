@@ -1,0 +1,25 @@
+<h2 class="sub-header">Stockists</h2>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>City</th>
+        <th>Phone</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody data-ng-repeat="stockist in stockists">
+      <tr>
+        <td>{{stockist.name}}</td>
+        <td>{{stockist.city}}</td>
+        <td>{{stockist.phone}}</td>
+        <td><a data-ng-href="#/stockist/{{ stockist.name | encodeURIComponent }}" class="btn btn-sm btn-info">View</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="progress progress-striped active" data-ng-show="loading">
+  <div class="progress-bar" style="width: 45%"></div>
+</div>

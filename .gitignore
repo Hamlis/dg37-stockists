@@ -6,3 +6,4 @@ tmp
 .idea
 vendor/
 bin/
+public/components

@@ -16,7 +16,8 @@
         }
     ],
     "require": {
-        "phly/phlyty": "dev-master"
+        "phly/phlyty": "dev-master",
+        "firebase/php-jwt": "dev-master"
     },
     "require-dev": {
         "phpspec/phpspec": "2.0.*@dev"

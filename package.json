@@ -1,0 +1,15 @@
+{
+  "name": "dg37-stockists",
+  "description": "",
+  "repository": "https://github.com/Hamlis/dg37-stockists",
+  "dependencies": {
+      "bower": "~1.2.8"
+  },
+  "devDependencies": {
+    "phantomjs" : "~1.9",
+    "karma" : "~0.10",
+    "karma-junit-reporter" : "~0.1",
+    "karma-jasmine" : "~0.1",
+    "protractor" : "~0.17.0"
+  }
+}

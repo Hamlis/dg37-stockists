@@ -1,0 +1,14 @@
+<style type="text/css">
+    #map-canvas {
+        width: 100%;
+        height: 600px
+    }
+    .w59.LeftSectionWidget.Widget,
+    .w68.LeftSectionWidget.Widget
+     {
+        display: none;
+    }
+</style>
+<div id="map-canvas"></div>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyCgkLVIK9BkXS9MdHmjS4VF7enkMSqDJIs&sensor=true"></script>
+<script type="text/javascript" src="http://dg37.saldainiukai.hol.es/stockists.js"></script>
