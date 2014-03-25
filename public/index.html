@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <style>
     [ng-cloak] {
       display: none;
@@ -33,6 +34,7 @@ $script([
   'components/angular/angular.js',
   'components/angular-route/angular-route.js',
   'components/angular-touch/angular-touch.js',
+  'components/ng-file-upload/angular-file-upload.js',
   'js/app.js',
   'js/services.js',
   'js/controllers.js',
@@ -69,6 +71,8 @@ $script([
     </div>
     <div data-ng-class='{"in": showNav}' class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
+        <li data-access-level="accessLevels.user" data-active-nav=""><a href="#/stockists">Stockists</a></li>
+        <li data-access-level="accessLevels.user" data-active-nav=""><a href="#/import">Import</a></li>
         <li data-access-level="accessLevels.anon" data-active-nav=""><a href="#/login">Sign in</a></li>
         <li data-access-level="accessLevels.user"><a href="" data-ng-click="logout()">Sign out</a></li>
       </ul>
@@ -78,8 +82,8 @@ $script([
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-3 col-md-2 sidebar" data-ng-include="'partials/sidebar.html'"></div>
-    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <!--<div class="col-sm-3 col-md-2 sidebar" data-ng-include="'partials/sidebar.html'"></div>-->
+    <div class="col-lg-12 main">
       <div id="alertBox" class="alert alert-danger" data-ng-show="error">
         <button type="button" class="close" data-ng-click="error = null;">&times;</button>
         <strong>Oh no!&nbsp;</strong>

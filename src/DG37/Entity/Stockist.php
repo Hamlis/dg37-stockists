@@ -53,6 +53,16 @@ class Stockist implements JsonSerializable
     protected $image;
 
     /**
+     * @var string
+     */
+    protected $latitude;
+
+    /**
+     * @var string
+     */
+    protected $longitude;
+
+    /**
      * @param string $name
      */
     public function __construct($name)
@@ -218,6 +228,38 @@ class Stockist implements JsonSerializable
     public function getState()
     {
         return $this->state;
+    }
+
+    /**
+     * @param string $longitude
+     */
+    public function setLongitude($longitude)
+    {
+        $this->longitude = $longitude;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLongitude()
+    {
+        return $this->longitude;
+    }
+
+    /**
+     * @param string $latitude
+     */
+    public function setLatitude($latitude)
+    {
+        $this->latitude = $latitude;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLatitude()
+    {
+        return $this->latitude;
     }
 
 }

@@ -5,6 +5,7 @@
 angular.module('stockists', [
     'ngRoute',
     'ngTouch',
+    'angularFileUpload',
     'myApp.filters',
     'myApp.services',
     'myApp.directives',
@@ -32,6 +33,11 @@ angular.module('stockists', [
       access: access.user
     });
 
+    $routeProvider.when('/import', {
+      templateUrl: 'partials/import.html',
+      controller: 'ImportCtrl',
+      access: access.user
+    });
     $routeProvider.when('/stockists', {
       templateUrl: 'partials/stockists.html',
       controller: 'StockistsCtrl',
@@ -55,8 +61,8 @@ angular.module('stockists', [
     //$locationProvider.html5Mode(true);
 
     $httpProvider.interceptors.push('authInterceptor');
-  }]).
-  run(['$rootScope', '$location', '$http', 'Auth', function ($rootScope, $location, $http, Auth) {
+  }])
+  .run(['$rootScope', '$location', '$http', 'Auth', function ($rootScope, $location, $http, Auth) {
 
     $rootScope.$on("$routeChangeStart", function (event, next, current) {
       if ('access' in next && !Auth.authorize(next.access)) {

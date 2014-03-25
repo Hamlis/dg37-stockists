@@ -1,0 +1,18 @@
+<h2 class="sub-header">Stockists import</h2>
+
+<div class="well" data-ng-hide="loading">
+  <form class="form-horizontal" data-ng-submit="">
+      <div class="form-group">
+        <label for="inputFile" class="col-lg-2 control-label">File</label>
+
+        <div class="col-lg-10">
+          <input type="file" class="form-control" id="inputFile" placeholder="File"
+                 data-ng-file-select="onFileSelect($files)">
+        </div>
+      </div>
+  </form>
+</div>
+
+<div class="progress progress-striped active" data-ng-show="loading">
+  <div class="progress-bar" style="width: 45%"></div>
+</div>

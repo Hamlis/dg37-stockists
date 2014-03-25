@@ -10,7 +10,63 @@ use Zend\Http\PhpEnvironment\Request;
 
 include 'vendor/autoload.php';
 
-$stockistsRepository = new \DG37\Repository\InMemoryStockistRepository();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+$database = new PDO('sqlite:data/database.sq3');
+
+//if (!file_exists('data/database.sq3')) {
+    $database->exec(
+        "
+        CREATE TABLE IF NOT EXISTS stockists
+        (
+          name CONSTRAINT uniqueName PRIMARY KEY ASC,
+          address1,
+          address2,
+          city,
+          state,
+          postcode,
+          phone,
+          url,
+          image,
+          latitude,
+          longitude
+        )
+        "
+    );
+//}
+
+$stockistsRepository = new \DG37\Repository\StockistRepository($database);
+
+$doImport = function () use ($stockistsRepository) {
+    $csv = fopen('data/stockists.csv', 'r');
+    fgetcsv($csv, null, "\t");
+    $stockistsNames = [];
+    while ($data = fgetcsv($csv, null, "\t")) {
+        if (!isset($data[0])) {
+            continue;
+        }
+        array_walk(
+            $data,
+            function (&$value) {
+                $value = iconv('ISO-8859-1', 'UTF-8//TRANSLIT', $value);
+            }
+        );
+        $stockist = new \DG37\Entity\Stockist($data[0]);
+        $stockist->setAddress1(isset($data[1]) ? $data[1] : '');
+        $stockist->setAddress2(isset($data[2]) ? $data[2] : '');
+        $stockist->setCity(isset($data[3]) ? $data[3] : '');
+        $stockist->setState(isset($data[4]) ? $data[4] : '');
+        $stockist->setPostcode(isset($data[5]) ? $data[5] : '');
+        $stockist->setPhone(isset($data[6]) ? $data[6] : '');
+        $stockist->setUrl(isset($data[7]) ? $data[7] : '');
+        $stockist->setImage(isset($data[8]) ? $data[8] : '');
+        $stockistsRepository->save($stockist);
+        $stockistsNames[] = $stockist->getName();
+    }
+    fclose($csv);
+    $stockistsRepository->removeOthers($stockistsNames);
+};
 
 $app = new App();
 
@@ -18,37 +74,30 @@ $secret = 'X@1IxrxJSI!Q^FX!&l9qTo!#0ui*@wgD';
 
 $app->events()->attach(
     'begin',
-    function () use ($stockistsRepository) {
-        $csv = fopen('stockist list.csv', 'r');
-        fgetcsv($csv, null, "\t");
-        $index = 0;
-        while ($data = fgetcsv($csv, null, "\t")) {
-            ++$index;
-            array_walk(
-                $data,
-                function (&$value) {
-                    $value = iconv('ISO-8859-1', 'UTF-8//TRANSLIT', $value);
-                }
-            );
-            $stockist = new \DG37\Entity\Stockist($data[0]);
-            $stockist->setAddress1($data[1]);
-            $stockist->setAddress2($data[2]);
-            $stockist->setCity($data[3]);
-            $stockist->setState($data[4]);
-            $stockist->setPostcode($data[5]);
-            $stockist->setPhone($data[6]);
-            $stockist->setUrl($data[7]);
-            $stockist->setImage($data[8]);
-            $stockistsRepository->save($stockist);
+    function (AppEvent $event) {
+        /** @var Request $request */
+        $request = $event->getTarget()->request();
+        $httpReferer = $request->getServer('HTTP_REFERER');
+        $ref = null;
+
+        foreach (['http://demolt.ashop.me', 'http://dg37.com.au', 'http://www.dg37.com.au'] as $site) {
+            if (strpos($httpReferer, $site) === 0) {
+                $ref = $site;
+                break;
+            }
         }
-        fclose($csv);
+
+        if (null !== $ref) {
+            /** @var \Zend\Http\PhpEnvironment\Response $response */
+            $response = $event->getTarget()->response();
+            $response->getHeaders()->addHeaderLine("Access-Control-Allow-Origin: " . $ref);
+        }
     }
 );
 
 $app->events()->attach(
     'route',
     function (AppEvent $event) {
-        ini_set('display_errors', 1);
         /** @var Request $request */
         $request = $event->getParam('request');
         if ($request->isPost() &&
@@ -98,7 +147,7 @@ $app->get(
     '/',
     function () {
         ob_start();
-        include 'leftSidebar.phtml';
+        include 'leftSidebar-old.phtml';
         $leftSidebar = ob_get_clean();
 
         ob_start();
@@ -135,6 +184,30 @@ $app->post(
     }
 );
 $app->get(
+    '/stockists.json',
+    function (App $app) use ($stockistsRepository) {
+        $app->response()->getHeaders()->addHeader(new \Zend\Http\Header\ContentType('application/json'));
+        $app->response()->setContent(
+            json_encode(['Stockists' => array_map(function (\DG37\Entity\Stockist $stockist) {
+                return [
+                    'title' => $stockist->getName(),
+                    'address' => implode("\n", array_filter([
+                        $stockist->getAddress1(),
+                        $stockist->getAddress2(),
+                        implode(', ', array_filter([
+                            $stockist->getCity(),
+                            implode(' ', array_filter([$stockist->getState(), $stockist->getPostcode()]))
+                        ]))
+                    ])),
+                    'phone' => $stockist->getPhone(),
+                    'url' => $stockist->getUrl(),
+                    'image' => $stockist->getImage()
+                ];
+            }, $stockistsRepository->findAll())])
+        );
+    }
+);
+$app->get(
     '/api/stockists.json',
     function (App $app) use ($stockistsRepository) {
         $app->response()->getHeaders()->addHeader(new \Zend\Http\Header\ContentType('application/json'));
@@ -143,11 +216,39 @@ $app->get(
         );
     }
 );
+$app->post(
+    '/api/stockists.csv',
+    function (App $app) use ($doImport) {
+        file_put_contents('data/stockists.csv', $app->request()->getContent());
+        copy('data/stockists.csv', 'data/history/' . microtime(true) . '.csv');
+        $doImport();
+        $app->response()->getHeaders()->addHeader(new \Zend\Http\Header\ContentType('application/json'));
+        $app->response()->setStatusCode(201);
+    }
+);
 $app->get(
     '/api/stockists/:name[].json',
     function (App $app) use ($stockistsRepository) {
         $name = $app->params()->getParam('name');
         $stockist = $stockistsRepository->findOneByName($name);
+        $app->response()->getHeaders()->addHeader(new \Zend\Http\Header\ContentType('application/json'));
+        $app->response()->setContent(
+            json_encode(['Stockist' => $stockist])
+        );
+    }
+);
+$app->post(
+    '/api/stockists/:name[].json',
+    function (App $app) use ($stockistsRepository) {
+        $name = $app->params()->getParam('name');
+        $stockist = $stockistsRepository->findOneByName($name);
+        foreach ($app->request()->getPost() as $key => $value) {
+            $setMethod = 'set' . ucfirst($key);
+            if (method_exists($stockist, $setMethod)) {
+                $stockist->{$setMethod}($value);
+            }
+        }
+        $stockistsRepository->save($stockist);
         $app->response()->getHeaders()->addHeader(new \Zend\Http\Header\ContentType('application/json'));
         $app->response()->setContent(
             json_encode(['Stockist' => $stockist])

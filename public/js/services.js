@@ -170,19 +170,49 @@ angular.module('myApp.services')
         return $q.reject(rejection);
       }
     };
-  }]);
-
-angular.module('myApp.services')
-  .factory('Users', function ($http) {
+  }])
+  .factory('AustraliaStates', function () {
+    var states = {
+      'ACT': {
+        'name': 'Australian Capital Territory',
+        'postcode': '^(26\\d\\d)$|^(29\\d\\d)$|^(02\\d\\d+)$'
+        },
+      'NSW': {
+        'name': 'New South Wales',
+        'postcode': '^(2\\d\\d\\d)$|^(1\\d\\d\\d+)$'
+        },
+      'NT': {
+        'name': 'Northern Territory',
+        'postcode': '^08\\d\\d$'
+        },
+      'QLD': {
+        'name': 'Queensland',
+        'postcode': '^(4\\d\\d\\d)$|^(9\\d\\d\\d+)$'
+        },
+      'SA': {
+        'name': 'South Australia',
+        'postcode': '^5\\d\\d\\d$'
+        },
+      'TAS': {
+        'name': 'Tasmania',
+        'postcode': '^7\\d\\d\\d$'
+        },
+      'VIC': {
+        'name': 'Victoria',
+        'postcode': '^(3\\d\\d\\d)$|^(8\\d\\d\\d+)$'
+        },
+      'WA': {
+        'name': 'Western Australia',
+        'postcode': '^6\\d\\d\\d$'
+        }
+      };
     return {
-      getAll: function (success, error) {
-        $http.get('/users').success(success).error(error);
+      getAll: function () {
+        return states;
       }
     };
-  });
-
-angular.module('myApp.services')
-  .factory('Stockists', function ($http) {
+  })
+  .factory('Stockists', ['$http', function ($http) {
     return {
       getAll: function (success, error) {
         $http.get('/api/stockists.json').success(success).error(error);
@@ -191,7 +221,7 @@ angular.module('myApp.services')
         $http.get('/api/stockists/' + encodeURIComponent(name) + '.json').success(success).error(error);
       },
       save: function (data, success, error) {
-        error();
+        $http.post('/api/stockists/' + encodeURIComponent(data.name) + '.json', data).success(success).error(error);
       }
     };
-  });
+  }]);

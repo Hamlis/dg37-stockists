@@ -34,7 +34,7 @@ angular.module('myApp.controllers', []).
       $location.path('/stockist/1' . id);
     };
   }])
-  .controller('StockistCtrl', ['$scope', '$rootScope', '$location', '$routeParams', 'Stockists', function ($scope, $rootScope, $location, $routeParams, Stockists) {
+  .controller('StockistCtrl', ['$scope', '$rootScope', '$location', '$routeParams', 'Stockists', 'AustraliaStates', function ($scope, $rootScope, $location, $routeParams, Stockists, AustraliaStates) {
     $scope.stockist = {};
     $scope.loading = true;
 
@@ -46,42 +46,9 @@ angular.module('myApp.controllers', []).
       $scope.loading = false;
     });
 
-    $scope.states = {
-      'ACT': {
-        'name': 'Australian Capital Territory',
-        'postcode': '^(26\\d\\d)$|^(29\\d\\d)$|^(02\\d\\d+)$'
-      },
-      'NSW': {
-        'name': 'New South Wales',
-        'postcode': '^(2\\d\\d\\d)$|^(1\\d\\d\\d+)$'
-      },
-      'NT': {
-        'name': 'Northern Territory',
-        'postcode': '^08\\d\\d$'
-      },
-      'QLD': {
-        'name': 'Queensland',
-        'postcode': '^(4\\d\\d\\d)$|^(9\\d\\d\\d+)$'
-      },
-      'SA': {
-        'name': 'South Australia',
-        'postcode': '^5\\d\\d\\d$'
-      },
-      'TAS': {
-        'name': 'Tasmania',
-        'postcode': '^7\\d\\d\\d$'
-      },
-      'VIC': {
-        'name': 'Victoria',
-        'postcode': '^(3\\d\\d\\d)$|^(8\\d\\d\\d+)$'
-      },
-      'WA': {
-        'name': 'Western Australia',
-        'postcode': '^6\\d\\d\\d$'
-      }
-    };
+    $scope.states = AustraliaStates.getAll();
 
-    $scope.$watch('stockist.postcode', function(newValue, oldValue){
+    $scope.$watch('stockist.postcode', function(newValue){
       var x;
       for (x in $scope.states) {
         if ((new RegExp($scope.states[x].postcode)).test(newValue)) {
@@ -97,13 +64,10 @@ angular.module('myApp.controllers', []).
 
     $scope.submit = function () {
       $scope.loading = true;
-      console.log('save');
       Stockists.save($scope.stockist, function () {
         $scope.loading = false;
-        console.log('success');
         $location.path('/stockists');
       }, function () {
-        console.log('error');
         $rootScope.error = "Failed to save stockist.";
         $scope.loading = false;
       });
@@ -126,5 +90,29 @@ angular.module('myApp.controllers', []).
     $scope.toggle = function () {
       console.log('toggle');
       $scope.showNav = !$scope.showNav;
+    };
+  }])
+  .controller('ImportCtrl', ['$scope', '$upload', '$location', function ($scope, $upload, $location) {
+    $scope.loading = false;
+    $scope.onFileSelect = function ($files) {
+      $scope.loading = true;
+      //$files: an array of files selected, each file has name, size, and type.
+      if ($files.length > 0) {
+        var file = $files[0],
+          fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(file);
+        fileReader.onload = function (e) {
+          $scope.upload = $upload.http({
+            url: '/api/stockists.csv',
+            headers: {'Content-Type': file.type},
+            data: e.target.result
+          }).progress(function (evt) {
+            console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total));
+          }).success(function (data, status, headers, config) {
+            // file is uploaded successfully
+            $location.path('/stockists');
+          });
+        };
+      }
     };
   }]);
